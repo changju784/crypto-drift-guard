@@ -1,0 +1,7 @@
+pandas>=2.0
+matplotlib>=3.7
+anthropic>=0.50
+
+# FinBERT (local ~440 MB, CPU-friendly)
+transformers>=4.40
+torch>=2.0

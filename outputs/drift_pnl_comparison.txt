@@ -1,0 +1,5 @@
+=== P&L Comparison: Baseline vs Mutant ===
+Experiment                           Baseline           Mutant            Delta
+------------------------------------------------------------------------------
+intensity_k2                          -369.90         -1801.30   -1431.40 (A better)
+temporal_jitter_n3                    -369.90          -369.90      +0.00 (Tied)

@@ -1,0 +1,4 @@
+=== P&L Comparison: Rule Engine vs FINBERT ===
+Experiment                        Rule Engine          FINBERT            Delta
+------------------------------------------------------------------------------
+k2_full_finbert                      -1801.30        +24846.20  +26647.50 (B better)
