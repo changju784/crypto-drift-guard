@@ -1,0 +1,28 @@
+=================================================================
+  DRIFT REPORT: Baseline vs Intensity k=2
+=================================================================
+  Experiment        : intensity_k2
+  Total steps       : 2000
+  Decision changes  : 12  (ADR = 0.60%)
+  Oracle (baseline) : 98
+  Oracle (mutant)   : 98
+  Action flips      : {'BUY → HOLD': 6, 'BUY → SELL': 3, 'HOLD → BUY': 2, 'HOLD → SELL': 1}
+
+=================================================================
+  DRIFT REPORT: Baseline vs Temporal Jitter n=3
+=================================================================
+  Experiment        : temporal_jitter_n3
+  Total steps       : 2000
+  Decision changes  : 80  (ADR = 4.00%)
+  Oracle (baseline) : 98
+  Oracle (mutant)   : 98
+  Action flips      : {'BUY → SELL': 26, 'SELL → BUY': 22, 'BUY → HOLD': 16, 'HOLD → BUY': 15, 'SELL → HOLD': 1}
+
+=================================================================
+  P&L COMPARISON
+=================================================================
+  Baseline                 | P&L: +46680.00 USD | Trades: 1887 | Win rate:  91.2%
+  Intensity k=2            | P&L: +46530.00 USD | Trades: 1884 | Win rate:  91.1%
+  Jitter n=3               | P&L: +46620.00 USD | Trades: 1885 | Win rate:  91.2%
+  Intensity delta : -150.00 USD
+  Jitter delta    : -60.00 USD
