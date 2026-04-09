@@ -1,55 +1,54 @@
 """
 Crypto-Shield — Unified Entry Point
 
-Two modes, one script:
-
-  drift   Mutation analysis: Rule Engine on baseline vs mutated data.
-          Produces trajectory logs and Logic Drift reports.
-
-  hybrid  Parallel agents: Rule Engine vs FinGPT/FinBERT on k=2 data.
-          Produces trajectory logs, consensus report, and comparison plots.
-
-  all     Runs drift then hybrid (default).
-
-Usage
-  python src/main.py                              # all modes, FinBERT, full dataset
-  python src/main.py --mode drift                 # drift only
-  python src/main.py --mode hybrid --sample 100   # hybrid, 100 rows
-  python src/main.py --mode hybrid --backend fingpt  # full FinGPT (needs GPU)
+Supports batch experiment execution across drift and hybrid modes.
 """
 
-import sys
+from __future__ import annotations
+
 import argparse
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 import pandas as pd
-from data.data_ingestion import load_baseline, mutate_intensity, mutate_temporal_jitter
-from agents.rule_based_agent import TradingAgent
+
 from agents.fingpt_agent import FinancialLLMAgent
-from simulator import simulate, simulate_df
-from analysis.reports import compute_drift, compute_consensus, format_pnl_table
+from agents.rule_based_agent import TradingAgent
 from analysis.plots import plot_all
+from analysis.reports import compute_consensus, compute_drift, format_pnl_table
+from data.data_ingestion import load_baseline
+from experiments import build_registry, format_catalog, parse_csv_arg, select_experiments
+from simulator import simulate, simulate_df
 
-OUTPUTS = Path(__file__).parent.parent / "outputs"
-OUTPUTS.mkdir(exist_ok=True)
-
+OUTPUTS_ROOT = Path(__file__).parent.parent / "outputs"
 SEP = "=" * 65
 
 
-# ── Shared helpers ────────────────────────────────────────────────────────────
-
-def _save_json(df: pd.DataFrame, name: str) -> Path:
-    p = OUTPUTS / f"{name}.json"
-    df.to_json(p, orient="records", indent=2, date_format="iso")
-    return p
+def _ensure_dir(path: Path) -> Path:
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
-def _save_txt(text: str, name: str) -> Path:
-    p = OUTPUTS / f"{name}.txt"
-    p.write_text(text, encoding="utf-8")
-    return p
+def _save_json(df: pd.DataFrame, path: Path) -> Path:
+    _ensure_dir(path.parent)
+    df.to_json(path, orient="records", indent=2, date_format="iso")
+    return path
+
+
+def _save_txt(text: str, path: Path) -> Path:
+    _ensure_dir(path.parent)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def _drift_output_dir(family: str, experiment_id: str) -> Path:
+    return _ensure_dir(OUTPUTS_ROOT / "drift" / family / experiment_id)
+
+
+def _hybrid_output_dir(backend: str, family: str, experiment_id: str) -> Path:
+    return _ensure_dir(OUTPUTS_ROOT / "hybrid" / backend / family / experiment_id)
 
 
 def _pnl_line(label: str, r) -> str:
@@ -60,145 +59,189 @@ def _pnl_line(label: str, r) -> str:
     )
 
 
-# ── Mode 1: Drift ─────────────────────────────────────────────────────────────
+def _print_selection(experiments) -> None:
+    print("Selected experiments:")
+    for spec in experiments:
+        tag = " stochastic" if spec.stochastic else ""
+        print(f"  - [{spec.family}] {spec.id}: {spec.description}{tag}")
 
-def run_drift(baseline_df: pd.DataFrame):
+
+def run_drift(baseline_df: pd.DataFrame, experiments, seed: int):
     print(f"\n{SEP}")
     print("  MODE: DRIFT  (Rule Engine baseline vs mutations)")
     print(SEP)
 
-    agent      = TradingAgent()
+    agent = TradingAgent()
     baseline_log = agent.run(baseline_df)
     baseline_sim = simulate(baseline_log)
-    base_df    = baseline_sim.detail
-
-    experiments = [
-        ("intensity_k2",      mutate_intensity(baseline_df, factor=2.0), "sentiment x2.0"),
-        ("temporal_jitter_n3", mutate_temporal_jitter(baseline_df, shift=3), "news_impact shifted 3 steps"),
-    ]
+    base_df = baseline_sim.detail
 
     pnl_rows = []
-    for label, mutant_df, desc in experiments:
-        print(f"\n[EXPERIMENT: {label}]  {desc}")
+    for spec in experiments:
+        print(f"\n[EXPERIMENT: {spec.id}]  family={spec.family}  {spec.description}  seed={seed}")
 
+        mutant_df = spec.mutate(baseline_df, mode="drift", seed=seed)
         mutant_log = agent.run(mutant_df)
         mutant_sim = simulate(mutant_log)
 
-        drift   = compute_drift(base_df, mutant_sim.detail)
-        report  = drift.summary()
+        drift = compute_drift(base_df, mutant_sim.detail)
+        report = drift.summary()
+        pnl_text = format_pnl_table([(spec.id, baseline_sim, mutant_sim)], col_a="Baseline", col_b="Mutant")
+
         print(report)
         print(_pnl_line("Baseline", baseline_sim))
-        print(_pnl_line("Mutant",   mutant_sim))
+        print(_pnl_line("Mutant", mutant_sim))
 
-        _save_json(base_df,           f"traj_baseline_{label}")
-        _save_json(mutant_sim.detail, f"traj_mutant_{label}")
-        _save_txt(report,            f"drift_report_{label}")
+        out_dir = _drift_output_dir(spec.family, spec.id)
+        _save_json(base_df, out_dir / "traj_baseline.json")
+        _save_json(mutant_sim.detail, out_dir / "traj_mutant.json")
+        _save_txt(report, out_dir / "drift_report.txt")
+        _save_txt(pnl_text, out_dir / "pnl_summary.txt")
 
-        pnl_rows.append((label, baseline_sim, mutant_sim))
+        pnl_rows.append((spec.id, baseline_sim, mutant_sim))
 
     table = format_pnl_table(pnl_rows, col_a="Baseline", col_b="Mutant")
-    _save_txt(table, "drift_pnl_comparison")
     print(f"\n{SEP}\n{table}\n{SEP}")
 
 
-# ── Mode 2: Hybrid ────────────────────────────────────────────────────────────
-
-def run_hybrid(baseline_df: pd.DataFrame, sample: int | None, backend: str):
+def run_hybrid(
+    baseline_df: pd.DataFrame,
+    experiments,
+    *,
+    sample: int | None,
+    backend: str,
+    seed: int,
+):
     print(f"\n{SEP}")
     print(f"  MODE: HYBRID  (Rule Engine vs {backend.upper()})")
     print(SEP)
 
-    mutant_df = mutate_intensity(baseline_df, factor=2.0)
-    if sample:
-        mutant_df = mutant_df.head(sample)
+    pnl_rows = []
+    for spec in experiments:
+        mutant_df = spec.mutate(baseline_df, mode="hybrid", seed=seed)
+        if sample:
+            mutant_df = mutant_df.head(sample)
 
-    label = f"k2_{'s'+str(sample) if sample else 'full'}_{backend}"
-    print(f"\n[INPUT]  rows={len(mutant_df)}  mutation=sentiment x2.0  backend={backend}")
+        print(
+            f"\n[EXPERIMENT: {spec.id}]  family={spec.family}  "
+            f"{spec.description}  rows={len(mutant_df)}  backend={backend}  seed={seed}"
+        )
 
-    # Layer A: Rule Engine
-    print("\n[LAYER A - Rule Engine]")
-    rule_log = TradingAgent().run(mutant_df)
-    rule_sim = simulate(rule_log)
-    rule_df  = rule_log.to_dataframe()
-    print(f"  Actions : {pd.Series([e.action_taken for e in rule_log.entries]).value_counts().to_dict()}")
-    print(_pnl_line("Rule Engine", rule_sim))
-    _save_json(rule_sim.detail, f"traj_rule_{label}")
+        # Layer A: Rule Engine
+        print("\n[LAYER A - Rule Engine]")
+        rule_log = TradingAgent().run(mutant_df)
+        rule_sim = simulate(rule_log)
+        rule_df = rule_log.to_dataframe()
+        print(f"  Actions : {pd.Series([e.action_taken for e in rule_log.entries]).value_counts().to_dict()}")
+        print(_pnl_line("Rule Engine", rule_sim))
 
-    # Layer B: FinGPT / FinBERT
-    print(f"\n[LAYER B - {backend.upper()}]")
-    fg_log = FinancialLLMAgent(backend=backend).run(mutant_df)
-    fg_df  = fg_log.to_dataframe()
-    fg_sim = simulate_df(fg_df, action_col="fingpt_action_taken")
-    print(f"  Actions : {fg_df['fingpt_action_taken'].value_counts().to_dict()}")
-    print(_pnl_line(backend.upper(), fg_sim))
+        # Layer B: FinGPT / FinBERT
+        print(f"\n[LAYER B - {backend.upper()}]")
+        fg_log = FinancialLLMAgent(backend=backend).run(mutant_df)
+        fg_df = fg_log.to_dataframe()
+        fg_sim = simulate_df(fg_df, action_col="fingpt_action_taken")
+        print(f"  Actions : {fg_df['fingpt_action_taken'].value_counts().to_dict()}")
+        print(_pnl_line(backend.upper(), fg_sim))
 
-    # Sample reasoning
-    print("\n  [Sample reasoning - first 3 non-HOLD]")
-    shown = 0
-    for e in fg_log.entries:
-        if e.fingpt_policy_action != "HOLD":
-            print(f"    [{e.fingpt_policy_action}] {e.cryptocurrency}"
-                  f" | sentiment={e.input_sentiment:.3f} | label='{e.raw_label}'")
-            print(f"    {e.fingpt_reasoning[:110]}")
-            shown += 1
-            if shown >= 3:
-                break
-    if shown == 0:
-        print("    (no non-HOLD decisions in this sample)")
+        print("\n  [Sample reasoning - first 3 non-HOLD]")
+        shown = 0
+        for e in fg_log.entries:
+            if e.fingpt_policy_action != "HOLD":
+                print(
+                    f"    [{e.fingpt_policy_action}] {e.cryptocurrency}"
+                    f" | sentiment={e.input_sentiment:.3f} | label='{e.raw_label}'"
+                )
+                print(f"    {e.fingpt_reasoning[:110]}")
+                shown += 1
+                if shown >= 3:
+                    break
+        if shown == 0:
+            print("    (no non-HOLD decisions in this sample)")
 
-    _save_json(fg_sim.detail, f"traj_fingpt_{label}")
+        print("\n[CONSENSUS]")
+        report = compute_consensus(rule_df, fg_df)
+        summary = report.summary()
+        pnl_text = format_pnl_table([(spec.id, rule_sim, fg_sim)], col_a="Rule Engine", col_b=backend.upper())
+        print(summary)
+        print(f"\n{SEP}\n{pnl_text}\n{SEP}")
 
-    # Consensus
-    print("\n[CONSENSUS]")
-    report = compute_consensus(rule_df, fg_df)
-    print(report.summary())
-    _save_txt(report.summary(), f"consensus_report_{label}")
+        out_dir = _hybrid_output_dir(backend, spec.family, spec.id)
+        plots_dir = _ensure_dir(out_dir / "plots")
+        _save_json(rule_sim.detail, out_dir / "traj_rule.json")
+        _save_json(fg_sim.detail, out_dir / "traj_agent.json")
+        _save_txt(summary, out_dir / "consensus_report.txt")
+        _save_txt(pnl_text, out_dir / "pnl_summary.txt")
 
-    # P&L table
-    table = format_pnl_table([(label, rule_sim, fg_sim)],
-                              col_a="Rule Engine", col_b=backend.upper())
-    _save_txt(table, f"hybrid_pnl_{label}")
+        print("\n[PLOTS]")
+        for p in plot_all(rule_sim.detail, fg_sim.detail, plots_dir):
+            print(f"  {p.name}")
+
+        combined = pd.concat([
+            rule_df.add_prefix("rule_").reset_index(drop=True),
+            fg_df.reset_index(drop=True),
+        ], axis=1)
+        combined["pnl_rule"] = rule_sim.detail["pnl"].values
+        combined["pnl_fingpt"] = fg_sim.detail["pnl"].values
+        combined["actions_agree"] = (
+            rule_df["action_taken"].values == fg_df["fingpt_action_taken"].values
+        )
+        _save_json(combined, out_dir / "combined_log.json")
+
+        pnl_rows.append((spec.id, rule_sim, fg_sim))
+
+    table = format_pnl_table(pnl_rows, col_a="Rule Engine", col_b=backend.upper())
     print(f"\n{SEP}\n{table}\n{SEP}")
 
-    # Plots
-    print("\n[PLOTS]")
-    for p in plot_all(rule_sim.detail, fg_sim.detail, OUTPUTS, label=label):
-        print(f"  {p.name}")
-
-    # Combined log
-    combined = pd.concat([
-        rule_df.add_prefix("rule_").reset_index(drop=True),
-        fg_df.reset_index(drop=True),
-    ], axis=1)
-    combined["pnl_rule"]      = rule_sim.detail["pnl"].values
-    combined["pnl_fingpt"]    = fg_sim.detail["pnl"].values
-    combined["actions_agree"] = (rule_df["action_taken"].values == fg_df["fingpt_action_taken"].values)
-    _save_json(combined, f"combined_log_{label}")
-
-
-# ── Entry point ───────────────────────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser(description="Crypto-Shield")
-    parser.add_argument("--mode",    default="all",     choices=["drift", "hybrid", "all"])
-    parser.add_argument("--sample",  type=int,          default=None,
-                        help="Limit hybrid mode to first N rows")
-    parser.add_argument("--backend", default="heuristic",
-                        choices=["heuristic", "finbert"],
-                        help="Agent backend: heuristic (default), finbert (local ~440MB, CPU ok)")
+    parser.add_argument("--mode", default="all", choices=["drift", "hybrid", "all"])
+    parser.add_argument("--sample", type=int, default=None, help="Limit hybrid mode to first N rows")
+    parser.add_argument(
+        "--backend",
+        default="heuristic",
+        choices=["heuristic", "finbert"],
+        help="Agent backend: heuristic (default), finbert (local ~440MB, CPU ok)",
+    )
+    parser.add_argument("--families", default=None, help="Comma-separated experiment families")
+    parser.add_argument("--experiments", default=None, help="Comma-separated experiment ids")
+    parser.add_argument("--list-experiments", action="store_true", help="List all available experiments and exit")
+    parser.add_argument("--seed", type=int, default=527, help="Random seed for stochastic experiments")
     args = parser.parse_args()
 
+    registry = build_registry()
+    if args.list_experiments:
+        print(format_catalog(registry))
+        return
+
+    family_names = parse_csv_arg(args.families)
+    experiment_ids = parse_csv_arg(args.experiments)
+    experiments = select_experiments(
+        registry,
+        families=family_names,
+        experiment_ids=experiment_ids,
+    )
+
     baseline_df = load_baseline()
-    print(f"Loaded {len(baseline_df)} rows | "
-          f"{baseline_df['timestamp'].min()} -> {baseline_df['timestamp'].max()}")
+    print(
+        f"Loaded {len(baseline_df)} rows | "
+        f"{baseline_df['timestamp'].min()} -> {baseline_df['timestamp'].max()}"
+    )
+    _print_selection(experiments)
 
     if args.mode in ("drift", "all"):
-        run_drift(baseline_df)
+        run_drift(baseline_df, experiments, seed=args.seed)
 
     if args.mode in ("hybrid", "all"):
-        run_hybrid(baseline_df, sample=args.sample, backend=args.backend)
+        run_hybrid(
+            baseline_df,
+            experiments,
+            sample=args.sample,
+            backend=args.backend,
+            seed=args.seed,
+        )
 
-    print(f"\nAll outputs -> {OUTPUTS}")
+    print(f"\nAll outputs -> {OUTPUTS_ROOT}")
 
 
 if __name__ == "__main__":
