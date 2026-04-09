@@ -148,3 +148,51 @@ def format_pnl_table(
             f" {delta:>+10.2f} ({tag})"
         )
     return "\n".join(lines)
+
+
+def format_drift_family_summary(family: str, rows: list[dict], seed: int) -> str:
+    header = (
+        f"{'Experiment':<22} {'ADR%':>8} {'Base P&L':>12} {'Mut P&L':>12} "
+        f"{'Delta':>12} {'B.Trd':>7} {'M.Trd':>7} {'B.Win%':>8} {'M.Win%':>8}\n"
+        + "-" * 110
+    )
+    lines = [
+        f"=== Drift Family Summary: {family} ===",
+        f"Seed: {seed}",
+        header,
+    ]
+    for row in rows:
+        lines.append(
+            f"{row['experiment_id']:<22} {row['adr_pct']:>7.2f}% "
+            f"{row['baseline_pnl']:>+12.2f} {row['mutant_pnl']:>+12.2f} "
+            f"{row['delta_pnl']:>+12.2f} {row['baseline_trades']:>7} "
+            f"{row['mutant_trades']:>7} {row['baseline_win_rate_pct']:>7.1f}% "
+            f"{row['mutant_win_rate_pct']:>7.1f}%"
+        )
+        lines.append(f"  desc: {row['description']}")
+    return "\n".join(lines)
+
+
+def format_hybrid_family_summary(family: str, backend: str, rows: list[dict], seed: int) -> str:
+    header = (
+        f"{'Experiment':<22} {'Logic%':>8} {'Policy%':>8} {'Rule P&L':>12} "
+        f"{'Agent P&L':>12} {'Delta':>12} {'R.Trd':>7} {'A.Trd':>7}\n"
+        + "-" * 110
+    )
+    lines = [
+        f"=== Hybrid Family Summary: {family} / {backend} ===",
+        f"Seed: {seed}",
+        header,
+    ]
+    for row in rows:
+        lines.append(
+            f"{row['experiment_id']:<22} {row['logic_gap_pct']:>7.2f}% "
+            f"{row['policy_gap_pct']:>7.2f}% {row['rule_pnl']:>+12.2f} "
+            f"{row['agent_pnl']:>+12.2f} {row['delta_pnl']:>+12.2f} "
+            f"{row['rule_trades']:>7} {row['agent_trades']:>7}"
+        )
+        lines.append(
+            f"  desc: {row['description']} | rule win={row['rule_win_rate_pct']:.1f}% "
+            f"| agent win={row['agent_win_rate_pct']:.1f}%"
+        )
+    return "\n".join(lines)

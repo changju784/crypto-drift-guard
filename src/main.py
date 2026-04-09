@@ -17,7 +17,13 @@ import pandas as pd
 from agents.fingpt_agent import FinancialLLMAgent
 from agents.rule_based_agent import TradingAgent
 from analysis.plots import plot_all
-from analysis.reports import compute_consensus, compute_drift, format_pnl_table
+from analysis.reports import (
+    compute_consensus,
+    compute_drift,
+    format_drift_family_summary,
+    format_hybrid_family_summary,
+    format_pnl_table,
+)
 from data.data_ingestion import load_baseline
 from experiments import build_registry, format_catalog, parse_csv_arg, select_experiments
 from simulator import simulate, simulate_df
@@ -51,6 +57,14 @@ def _hybrid_output_dir(backend: str, family: str, experiment_id: str) -> Path:
     return _ensure_dir(OUTPUTS_ROOT / "hybrid" / backend / family / experiment_id)
 
 
+def _drift_family_dir(family: str) -> Path:
+    return _ensure_dir(OUTPUTS_ROOT / "drift" / family)
+
+
+def _hybrid_family_dir(backend: str, family: str) -> Path:
+    return _ensure_dir(OUTPUTS_ROOT / "hybrid" / backend / family)
+
+
 def _pnl_line(label: str, r) -> str:
     return (
         f"  {label:<18} | P&L: {r.total_pnl:>+10.2f} USD"
@@ -77,6 +91,7 @@ def run_drift(baseline_df: pd.DataFrame, experiments, seed: int):
     base_df = baseline_sim.detail
 
     pnl_rows = []
+    family_rows: dict[str, list[dict]] = {}
     for spec in experiments:
         print(f"\n[EXPERIMENT: {spec.id}]  family={spec.family}  {spec.description}  seed={seed}")
 
@@ -99,9 +114,26 @@ def run_drift(baseline_df: pd.DataFrame, experiments, seed: int):
         _save_txt(pnl_text, out_dir / "pnl_summary.txt")
 
         pnl_rows.append((spec.id, baseline_sim, mutant_sim))
+        family_rows.setdefault(spec.family, []).append({
+            "experiment_id": spec.id,
+            "description": spec.description,
+            "adr_pct": drift.adr * 100.0,
+            "baseline_pnl": baseline_sim.total_pnl,
+            "mutant_pnl": mutant_sim.total_pnl,
+            "delta_pnl": mutant_sim.total_pnl - baseline_sim.total_pnl,
+            "baseline_trades": baseline_sim.trade_count,
+            "mutant_trades": mutant_sim.trade_count,
+            "baseline_win_rate_pct": baseline_sim.win_rate * 100.0,
+            "mutant_win_rate_pct": mutant_sim.win_rate * 100.0,
+        })
 
     table = format_pnl_table(pnl_rows, col_a="Baseline", col_b="Mutant")
     print(f"\n{SEP}\n{table}\n{SEP}")
+
+    for family, rows in family_rows.items():
+        summary = format_drift_family_summary(family, rows, seed=seed)
+        _save_txt(summary, _drift_family_dir(family) / "summary.txt")
+        print(f"  [SUMMARY] drift/{family}/summary.txt")
 
 
 def run_hybrid(
@@ -117,6 +149,7 @@ def run_hybrid(
     print(SEP)
 
     pnl_rows = []
+    family_rows: dict[str, list[dict]] = {}
     for spec in experiments:
         mutant_df = spec.mutate(baseline_df, mode="hybrid", seed=seed)
         if sample:
@@ -188,9 +221,27 @@ def run_hybrid(
         _save_json(combined, out_dir / "combined_log.json")
 
         pnl_rows.append((spec.id, rule_sim, fg_sim))
+        family_rows.setdefault(spec.family, []).append({
+            "experiment_id": spec.id,
+            "description": spec.description,
+            "logic_gap_pct": report.logic_gap_ratio * 100.0,
+            "policy_gap_pct": report.policy_gap_ratio * 100.0,
+            "rule_pnl": rule_sim.total_pnl,
+            "agent_pnl": fg_sim.total_pnl,
+            "delta_pnl": fg_sim.total_pnl - rule_sim.total_pnl,
+            "rule_trades": rule_sim.trade_count,
+            "agent_trades": fg_sim.trade_count,
+            "rule_win_rate_pct": rule_sim.win_rate * 100.0,
+            "agent_win_rate_pct": fg_sim.win_rate * 100.0,
+        })
 
     table = format_pnl_table(pnl_rows, col_a="Rule Engine", col_b=backend.upper())
     print(f"\n{SEP}\n{table}\n{SEP}")
+
+    for family, rows in family_rows.items():
+        summary = format_hybrid_family_summary(family, backend, rows, seed=seed)
+        _save_txt(summary, _hybrid_family_dir(backend, family) / "summary.txt")
+        print(f"  [SUMMARY] hybrid/{backend}/{family}/summary.txt")
 
 
 def main():
