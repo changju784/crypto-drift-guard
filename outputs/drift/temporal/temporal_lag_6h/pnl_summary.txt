@@ -1,0 +1,4 @@
+=== P&L Comparison: Baseline vs Mutant ===
+Experiment                           Baseline           Mutant            Delta
+------------------------------------------------------------------------------
+temporal_lag_6h                       -369.90         +1730.40   +2100.30 (B better)

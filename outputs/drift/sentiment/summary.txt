@@ -1,0 +1,18 @@
+=== Drift Family Summary: sentiment ===
+Seed: 527
+Experiment                 ADR%     Base P&L      Mut P&L        Delta   B.Trd   M.Trd   B.Win%   M.Win%
+--------------------------------------------------------------------------------------------------------------
+sentiment_scale_k05      11.10%      -369.90      -147.80      +222.10     296      67    46.6%    50.7%
+  desc: social_sentiment_score x0.5
+sentiment_scale_k15      12.02%      -369.90      -732.10      -362.20     296     544    46.6%    48.2%
+  desc: social_sentiment_score x1.5
+sentiment_scale_k20      19.29%      -369.90     -1801.30     -1431.40     296     694    46.6%    47.8%
+  desc: social_sentiment_score x2.0
+sentiment_flip_p10        1.65%      -369.90      -159.20      +210.70     296     303    46.6%    46.9%
+  desc: flip social sentiment with p=0.10
+sentiment_flip_p20        3.64%      -369.90      -221.50      +148.40     296     301    46.6%    46.8%
+  desc: flip social sentiment with p=0.20
+sentiment_flip_p30        5.72%      -369.90      -740.60      -370.70     296     313    46.6%    46.0%
+  desc: flip social sentiment with p=0.30
+sentiment_fused_eq        8.24%      -369.90      -982.00      -612.10     296     264    46.6%    46.6%
+  desc: effective sentiment = 0.5*social + 0.5*news

@@ -1,0 +1,6 @@
+=== Logic Drift Report ===
+Total steps            : 2063
+Mismatched steps       : 229
+ADR                    : 0.1110  (11.10%)
+Oracle violations      : 0
+Oracle violation rate  : 0.0000  (0.00%)

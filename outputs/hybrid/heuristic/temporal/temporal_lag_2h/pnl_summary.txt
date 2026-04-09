@@ -1,0 +1,4 @@
+=== P&L Comparison: Rule Engine vs HEURISTIC ===
+Experiment                        Rule Engine        HEURISTIC            Delta
+------------------------------------------------------------------------------
+temporal_lag_2h                       -153.60           -21.10    +132.50 (B better)

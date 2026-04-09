@@ -1,0 +1,4 @@
+=== P&L Comparison: Baseline vs Mutant ===
+Experiment                           Baseline           Mutant            Delta
+------------------------------------------------------------------------------
+sentiment_flip_p20                    -369.90          -221.50    +148.40 (B better)

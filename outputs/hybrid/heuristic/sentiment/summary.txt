@@ -1,0 +1,18 @@
+=== Hybrid Family Summary: sentiment / heuristic ===
+Seed: 527
+Experiment               Logic%  Policy%     Rule P&L    Agent P&L        Delta   R.Trd   A.Trd
+--------------------------------------------------------------------------------------------------------------
+sentiment_scale_k05       6.00%   14.00%       -94.50      +149.30      +243.80       3       5
+  desc: social_sentiment_score x0.5 | rule win=0.0% | agent win=80.0%
+sentiment_scale_k15      14.00%   26.00%      -314.70      +232.00      +546.70      31      23
+  desc: social_sentiment_score x1.5 | rule win=45.2% | agent win=65.2%
+sentiment_scale_k20      12.00%   23.00%      -302.20      +259.10      +561.30      40      30
+  desc: social_sentiment_score x2.0 | rule win=47.5% | agent win=60.0%
+sentiment_flip_p10        6.00%   18.00%      -104.20      +175.10      +279.30      18      16
+  desc: flip social sentiment with p=0.10 | rule win=55.6% | agent win=75.0%
+sentiment_flip_p20        7.00%   18.00%      -169.70      +160.30      +330.00      17      16
+  desc: flip social sentiment with p=0.20 | rule win=52.9% | agent win=75.0%
+sentiment_flip_p30        9.00%   19.00%      -194.80      +160.30      +355.10      19      16
+  desc: flip social sentiment with p=0.30 | rule win=52.6% | agent win=75.0%
+sentiment_fused_eq       10.00%   18.00%      -206.30      +133.10      +339.40      15       9
+  desc: effective sentiment = 0.5*social + 0.5*news | rule win=40.0% | agent win=77.8%

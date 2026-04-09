@@ -1,0 +1,6 @@
+=== Hybrid Family Summary: temporal / heuristic ===
+Seed: 527
+Experiment               Logic%  Policy%     Rule P&L    Agent P&L        Delta   R.Trd   A.Trd
+--------------------------------------------------------------------------------------------------------------
+temporal_lag_2h           4.00%   17.00%      -153.60       -21.10      +132.50      17      17
+  desc: lag consumed signals by 2 hours within each coin | rule win=47.1% | agent win=58.8%

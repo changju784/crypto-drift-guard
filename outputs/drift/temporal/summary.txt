@@ -1,0 +1,12 @@
+=== Drift Family Summary: temporal ===
+Seed: 527
+Experiment                 ADR%     Base P&L      Mut P&L        Delta   B.Trd   M.Trd   B.Win%   M.Win%
+--------------------------------------------------------------------------------------------------------------
+temporal_lag_30m         23.70%      -369.90      +629.30      +999.20     296     285    46.6%    52.3%
+  desc: lag consumed signals by 30 minutes within each coin
+temporal_lag_2h          24.92%      -369.90     +1294.10     +1664.00     296     295    46.6%    52.2%
+  desc: lag consumed signals by 2 hours within each coin
+temporal_lag_6h          25.40%      -369.90     +1730.40     +2100.30     296     301    46.6%    53.2%
+  desc: lag consumed signals by 6 hours within each coin
+temporal_lag_12h         25.45%      -369.90     +1348.70     +1718.60     296     323    46.6%    49.8%
+  desc: lag consumed signals by 12 hours within each coin

@@ -1,0 +1,4 @@
+=== P&L Comparison: Rule Engine vs HEURISTIC ===
+Experiment                        Rule Engine        HEURISTIC            Delta
+------------------------------------------------------------------------------
+sentiment_flip_p10                    -104.20          +175.10    +279.30 (B better)
