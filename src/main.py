@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import pandas as pd
 
-from agents.fingpt_agent import FinancialLLMAgent
+from agents.finbert_agent import FinancialLLMAgent
 from agents.rule_based_agent import TradingAgent
 from analysis.plots import plot_all
 from analysis.reports import (

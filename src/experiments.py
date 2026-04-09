@@ -5,7 +5,7 @@ Experiment registry and selection helpers.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Optional
 
 import pandas as pd
 
@@ -17,7 +17,7 @@ from data.data_ingestion import (
 )
 
 
-MutationFn = Callable[[pd.DataFrame, str, int | None], pd.DataFrame]
+MutationFn = Callable[[pd.DataFrame, str, Optional[int]], pd.DataFrame]
 
 DRIFT_TEMPORAL_COLUMNS = [
     "social_sentiment_score",
