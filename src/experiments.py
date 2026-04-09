@@ -13,11 +13,23 @@ from data.data_ingestion import (
     mutate_sentiment_flip,
     mutate_sentiment_fused_eq,
     mutate_sentiment_scale,
-    mutate_temporal_jitter,
+    mutate_temporal_lag_by_time,
 )
 
 
 MutationFn = Callable[[pd.DataFrame, str, int | None], pd.DataFrame]
+
+DRIFT_TEMPORAL_COLUMNS = [
+    "social_sentiment_score",
+    "rsi_technical_indicator",
+    "volatility_index",
+]
+
+HYBRID_TEMPORAL_COLUMNS = [
+    *DRIFT_TEMPORAL_COLUMNS,
+    "price_change_24h_percent",
+    "fear_greed_index",
+]
 
 
 @dataclass(frozen=True)
@@ -58,9 +70,14 @@ def _fused_eq(df: pd.DataFrame, mode: str, seed: int | None) -> pd.DataFrame:
     return mutate_sentiment_fused_eq(df)
 
 
-def _temporal_jitter_n3(df: pd.DataFrame, mode: str, seed: int | None) -> pd.DataFrame:
-    del mode, seed
-    return mutate_temporal_jitter(df, shift=3)
+def _temporal_lag(lag: str) -> MutationFn:
+    delta = pd.Timedelta(lag)
+
+    def _inner(df: pd.DataFrame, mode: str, seed: int | None) -> pd.DataFrame:
+        del seed
+        columns = DRIFT_TEMPORAL_COLUMNS if mode == "drift" else HYBRID_TEMPORAL_COLUMNS
+        return mutate_temporal_lag_by_time(df, lag=delta, columns=columns)
+    return _inner
 
 
 def build_registry() -> list[ExperimentSpec]:
@@ -114,10 +131,28 @@ def build_registry() -> list[ExperimentSpec]:
             mutation_fn=_fused_eq,
         ),
         ExperimentSpec(
-            id="temporal_jitter_n3",
+            id="temporal_lag_30m",
             family="temporal",
-            description="news_impact shifted 3 steps",
-            mutation_fn=_temporal_jitter_n3,
+            description="lag consumed signals by 30 minutes within each coin",
+            mutation_fn=_temporal_lag("30min"),
+        ),
+        ExperimentSpec(
+            id="temporal_lag_2h",
+            family="temporal",
+            description="lag consumed signals by 2 hours within each coin",
+            mutation_fn=_temporal_lag("2h"),
+        ),
+        ExperimentSpec(
+            id="temporal_lag_6h",
+            family="temporal",
+            description="lag consumed signals by 6 hours within each coin",
+            mutation_fn=_temporal_lag("6h"),
+        ),
+        ExperimentSpec(
+            id="temporal_lag_12h",
+            family="temporal",
+            description="lag consumed signals by 12 hours within each coin",
+            mutation_fn=_temporal_lag("12h"),
         ),
     ]
 

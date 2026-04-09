@@ -70,3 +70,36 @@ def mutate_temporal_jitter(df: pd.DataFrame, shift: int = 3) -> pd.DataFrame:
         .fillna(df["news_impact_score"].mean())
     )
     return mutant
+
+
+def mutate_temporal_lag_by_time(
+    df: pd.DataFrame,
+    lag: pd.Timedelta,
+    columns: list[str],
+) -> pd.DataFrame:
+    """
+    For each row, replace selected columns with the most recent value from the
+    same cryptocurrency at or before (timestamp - lag). If no such row exists,
+    keep the original value.
+    """
+    mutant = df.copy()
+    if not pd.api.types.is_datetime64_any_dtype(mutant["timestamp"]):
+        mutant["timestamp"] = pd.to_datetime(mutant["timestamp"])
+
+    for _, idx in mutant.groupby("cryptocurrency", sort=False).groups.items():
+        group = mutant.loc[idx].sort_values("timestamp").copy()
+        times = group["timestamp"].to_numpy()
+        lookup = times.searchsorted(times - lag, side="right") - 1
+        valid = lookup >= 0
+        if not valid.any():
+            continue
+
+        for column in columns:
+            values = group[column].to_numpy(copy=True)
+            source = group[column].to_numpy()
+            values[valid] = source[lookup[valid]]
+            group[column] = values
+
+        mutant.loc[group.index, columns] = group[columns]
+
+    return mutant
