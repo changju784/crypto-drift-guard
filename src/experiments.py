@@ -9,7 +9,12 @@ from typing import Callable
 
 import pandas as pd
 
-from data.data_ingestion import mutate_intensity, mutate_temporal_jitter
+from data.data_ingestion import (
+    mutate_sentiment_flip,
+    mutate_sentiment_fused_eq,
+    mutate_sentiment_scale,
+    mutate_temporal_jitter,
+)
 
 
 MutationFn = Callable[[pd.DataFrame, str, int | None], pd.DataFrame]
@@ -34,9 +39,23 @@ class ExperimentSpec:
         return self.mutation_fn(df, mode, seed)
 
 
-def _intensity_k2(df: pd.DataFrame, mode: str, seed: int | None) -> pd.DataFrame:
+def _scale(factor: float) -> MutationFn:
+    def _inner(df: pd.DataFrame, mode: str, seed: int | None) -> pd.DataFrame:
+        del mode, seed
+        return mutate_sentiment_scale(df, factor=factor)
+    return _inner
+
+
+def _flip(probability: float) -> MutationFn:
+    def _inner(df: pd.DataFrame, mode: str, seed: int | None) -> pd.DataFrame:
+        del mode
+        return mutate_sentiment_flip(df, p=probability, seed=seed)
+    return _inner
+
+
+def _fused_eq(df: pd.DataFrame, mode: str, seed: int | None) -> pd.DataFrame:
     del mode, seed
-    return mutate_intensity(df, factor=2.0)
+    return mutate_sentiment_fused_eq(df)
 
 
 def _temporal_jitter_n3(df: pd.DataFrame, mode: str, seed: int | None) -> pd.DataFrame:
@@ -47,10 +66,52 @@ def _temporal_jitter_n3(df: pd.DataFrame, mode: str, seed: int | None) -> pd.Dat
 def build_registry() -> list[ExperimentSpec]:
     return [
         ExperimentSpec(
-            id="intensity_k2",
+            id="sentiment_scale_k05",
             family="sentiment",
-            description="sentiment x2.0",
-            mutation_fn=_intensity_k2,
+            description="social_sentiment_score x0.5",
+            mutation_fn=_scale(0.5),
+        ),
+        ExperimentSpec(
+            id="sentiment_scale_k15",
+            family="sentiment",
+            description="social_sentiment_score x1.5",
+            mutation_fn=_scale(1.5),
+        ),
+        ExperimentSpec(
+            id="sentiment_scale_k20",
+            family="sentiment",
+            description="social_sentiment_score x2.0",
+            mutation_fn=_scale(2.0),
+        ),
+        ExperimentSpec(
+            id="sentiment_flip_p10",
+            family="sentiment",
+            description="flip social sentiment with p=0.10",
+            mutation_fn=_flip(0.10),
+            stochastic=True,
+            requires_seed=True,
+        ),
+        ExperimentSpec(
+            id="sentiment_flip_p20",
+            family="sentiment",
+            description="flip social sentiment with p=0.20",
+            mutation_fn=_flip(0.20),
+            stochastic=True,
+            requires_seed=True,
+        ),
+        ExperimentSpec(
+            id="sentiment_flip_p30",
+            family="sentiment",
+            description="flip social sentiment with p=0.30",
+            mutation_fn=_flip(0.30),
+            stochastic=True,
+            requires_seed=True,
+        ),
+        ExperimentSpec(
+            id="sentiment_fused_eq",
+            family="sentiment",
+            description="effective sentiment = 0.5*social + 0.5*news",
+            mutation_fn=_fused_eq,
         ),
         ExperimentSpec(
             id="temporal_jitter_n3",
