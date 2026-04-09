@@ -2,5 +2,11 @@
 Seed: 527
 Experiment               Logic%  Policy%     Rule P&L    Agent P&L        Delta   R.Trd   A.Trd
 --------------------------------------------------------------------------------------------------------------
+temporal_lag_30m          4.00%   17.00%      -156.80       +51.00      +207.80      15      15
+  desc: lag consumed signals by 30 minutes within each coin | rule win=46.7% | agent win=60.0%
 temporal_lag_2h           4.00%   17.00%      -153.60       -21.10      +132.50      17      17
   desc: lag consumed signals by 2 hours within each coin | rule win=47.1% | agent win=58.8%
+temporal_lag_6h           2.00%   20.00%       +42.80      +110.50       +67.70      16      16
+  desc: lag consumed signals by 6 hours within each coin | rule win=62.5% | agent win=68.8%
+temporal_lag_12h          7.00%   29.00%      -161.10      +163.00      +324.10      16      17
+  desc: lag consumed signals by 12 hours within each coin | rule win=50.0% | agent win=70.6%

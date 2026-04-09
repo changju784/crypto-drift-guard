@@ -1,0 +1,13 @@
+=== Consensus & Gap Report ===
+Total steps              : 100
+
+Logic Gap (post-oracle)  : 2  (2.00%)
+Policy Gap (pre-oracle)  : 20  (20.00%)
+Oracle Override Rate     : 14  (14.00%)
+
+Rule Engine dist : {'HOLD': 84, 'BUY': 10, 'SELL': 6}
+FinGPT dist      : {'HOLD': 84, 'BUY': 11, 'SELL': 5}
+
+Disagreement breakdown (Rule -> FinGPT):
+  HOLD -> BUY          : 1
+  SELL -> HOLD         : 1
