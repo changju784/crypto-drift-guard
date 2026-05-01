@@ -7,12 +7,15 @@ import pandas as pd
 from pathlib import Path
 
 
-DATA_PATH = Path(__file__).parent.parent.parent / "data" / "crypto_sentiment_prediction_dataset.csv"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DATA_PATH = REPO_ROOT / "data" / "deprecated" / "crypto_sentiment_prediction_dataset.csv"
+LEGACY_DATA_PATH = REPO_ROOT / "data" / "crypto_sentiment_prediction_dataset.csv"
 
 
 def load_baseline() -> pd.DataFrame:
-    """Load and time-sort the raw CSV into a clean baseline DataFrame."""
-    df = pd.read_csv(DATA_PATH, parse_dates=["timestamp"])
+    """Load the legacy prototype CSV used by the original Layer 2 demo."""
+    path = DATA_PATH if DATA_PATH.exists() else LEGACY_DATA_PATH
+    df = pd.read_csv(path, parse_dates=["timestamp"])
     df = df.sort_values("timestamp").reset_index(drop=True)
     return df
 

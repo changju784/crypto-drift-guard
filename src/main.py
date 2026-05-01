@@ -18,6 +18,8 @@ Usage
   python src/main.py --mode hybrid --backend fingpt  # full FinGPT (needs GPU)
 """
 
+from __future__ import annotations
+
 import sys
 import argparse
 from pathlib import Path
@@ -27,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import pandas as pd
 from data.data_ingestion import load_baseline, mutate_intensity, mutate_temporal_jitter
 from agents.rule_based_agent import TradingAgent
-from agents.fingpt_agent import FinancialLLMAgent
+from agents.finbert_agent import FinancialLLMAgent
 from simulator import simulate, simulate_df
 from analysis.reports import compute_drift, compute_consensus, format_pnl_table
 from analysis.plots import plot_all
