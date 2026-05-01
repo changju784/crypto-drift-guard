@@ -1,1 +1,14 @@
 __pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+
+# Generated Layer 1 artifacts. Raw source data is intentionally not ignored.
+data/processed/*.csv
+data/scored/*.csv
+data/mutated/**/*.csv
+data/reports/*.csv
+data/**/*.parquet
+
+# New experiment outputs are generated locally; existing tracked outputs remain tracked.
+outputs/
