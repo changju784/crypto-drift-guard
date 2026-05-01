@@ -14,19 +14,30 @@ The goal is not to build a profitable trading strategy, but to observe *how* and
 ```
 crypto-drift-guard/
 ├── data/
-│   └── crypto_sentiment_prediction_dataset.csv   # 2063 rows, 30-day crypto market data
+│   ├── raw/                                      # Raw crypto10k tweet dataset
+│   ├── processed/                                # Generated cleaned/window CSVs
+│   ├── scored/                                   # Generated FinBERT-scored CSVs
+│   ├── mutated/                                  # Generated mutation datasets
+│   ├── reports/                                  # Generated Layer 1 EDA/target tables
+│   └── deprecated/crypto_sentiment_prediction_dataset.csv
 ├── outputs/                                       # Generated on each run (JSON, TXT, PNG)
+├── notebooks/
+│   └── layer1_finbert_score_crypto10k_colab.ipynb # Colab Layer 1 runner
 ├── src/
 │   ├── main.py                                    # Entry point — drift / hybrid / all modes
 │   ├── simulator.py                               # P&L engine ($1000 notional per trade)
 │   ├── agents/
 │   │   ├── rule_based_agent.py                    # Deterministic rule engine + risk oracle
-│   │   └── fingpt_agent.py                        # FinBERT / heuristic agent
+│   │   └── finbert_agent.py                       # FinBERT / heuristic agent
 │   ├── analysis/
 │   │   ├── reports.py                             # DriftReport, ConsensusReport, P&L table
 │   │   └── plots.py                               # 4 comparison plots (PNG)
 │   └── data/
-│       └── data_ingestion.py                      # CSV loader + mutation operators
+│       ├── tweet_ingestion.py                     # Crypto10K cleansing and BTC/ETH filtering
+│       ├── finbert_scoring.py                     # Reusable FinBERT scoring helpers
+│       ├── window_features.py                     # Window aggregation and EDA regimes
+│       ├── adversarial_injection.py               # Pump/FUD/conflict synthetic tweet injection
+│       └── data_ingestion.py                      # Legacy CSV loader + mutation operators
 └── requirements.txt
 ```
 
@@ -39,6 +50,63 @@ crypto-drift-guard/
 | `simulator.py` | Converts action trajectories to per-step and cumulative P&L |
 | `compute_drift()` | Compares two Rule Engine trajectories — baseline vs mutant |
 | `compute_consensus()` | Compares Rule Engine vs FinBERT trajectories |
+
+---
+
+## Layer 1: Crypto10K Data Pipeline
+
+The current research path starts with the raw tweet dataset, not the deprecated
+synthetic sentiment dataset.
+
+Layer 1 order:
+
+```text
+raw crypto10k tweets
+-> clean BTC/ETH tweets
+-> FinBERT score each tweet
+-> aggregate 5-minute sentiment windows
+-> select attack target windows with EDA
+-> generate adversarial synthetic tweets
+-> score synthetic tweets with the same FinBERT model
+-> save scored baseline and mutated datasets
+```
+
+Run this in Colab with:
+
+```text
+notebooks/layer1_finbert_score_crypto10k_colab.ipynb
+```
+
+Expected Google Drive layout:
+
+```text
+MyDrive/crypto-drift-guard/
+  data/raw/crypto_10k_tweets_(2021_2022Nov).csv
+  data/processed/
+  data/scored/
+  data/mutated/adversarial/
+  data/reports/
+  src/
+  notebooks/
+```
+
+FinBERT score contract:
+
+```text
+sentiment_score = p_positive - p_negative
+sentiment_confidence = max(p_positive, p_neutral, p_negative)
+```
+
+Adversarial injection variants:
+
+| Variant | Target windows | Mutation |
+|---|---|---|
+| `positive_pump` | neutral windows | Add bullish synthetic tweets until positive ratio reaches target |
+| `negative_fud` | neutral or positive-skew windows | Add bearish synthetic tweets until negative ratio reaches target |
+| `conflict_balance` | positive/negative skew windows | Add opposite-polarity tweets until sentiment is balanced |
+
+Synthetic tweets are not assigned manual scores. They are passed through the
+same cleaning and FinBERT scoring flow as original tweets.
 
 ---
 
