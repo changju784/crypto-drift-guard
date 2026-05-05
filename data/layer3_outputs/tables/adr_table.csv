@@ -1,0 +1,7 @@
+dataset,family,strength,label,is_main,agent,matched_win,changed,ADR_%,top_flips
+sentiment_1.5,sentiment,1.5,Sentiment x1.5,True,deterministic,64,14,21.88,HOLD>BUY:14
+sentiment_1.5,sentiment,1.5,Sentiment x1.5,True,fingpt,64,3,4.69,BUY>HOLD:2 | HOLD>BUY:1
+jitter_15,jitter,15.0,Jitter +/-15m,True,deterministic,64,25,39.06,HOLD>BUY:12 | BUY>HOLD:10 | SELL>HOLD:2
+jitter_15,jitter,15.0,Jitter +/-15m,True,fingpt,64,7,10.94,BUY>HOLD:4 | HOLD>BUY:3
+injection_0.20,injection,0.2,Injection 20%,True,deterministic,64,12,18.75,HOLD>BUY:8 | BUY>HOLD:4
+injection_0.20,injection,0.2,Injection 20%,True,fingpt,64,2,3.12,HOLD>BUY:1 | BUY>HOLD:1

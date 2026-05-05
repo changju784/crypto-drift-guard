@@ -1,0 +1,19 @@
+dataset,family,strength,label,is_main,agent,matched_win,changed,ADR_%,top_flips
+sentiment_1.25,sentiment,1.25,Sentiment x1.25,False,deterministic,64,7,10.94,HOLD>BUY:7
+sentiment_1.25,sentiment,1.25,Sentiment x1.25,False,fingpt,64,4,6.25,BUY>HOLD:3 | HOLD>BUY:1
+sentiment_1.5,sentiment,1.5,Sentiment x1.5,True,deterministic,64,14,21.88,HOLD>BUY:14
+sentiment_1.5,sentiment,1.5,Sentiment x1.5,True,fingpt,64,3,4.69,BUY>HOLD:2 | HOLD>BUY:1
+sentiment_2.0,sentiment,2.0,Sentiment x2.0,False,deterministic,64,21,32.81,HOLD>BUY:21
+sentiment_2.0,sentiment,2.0,Sentiment x2.0,False,fingpt,64,4,6.25,HOLD>BUY:3 | BUY>HOLD:1
+jitter_5,jitter,5.0,Jitter +/-5m,False,deterministic,64,21,32.81,HOLD>BUY:11 | BUY>HOLD:6 | HOLD>SELL:3
+jitter_5,jitter,5.0,Jitter +/-5m,False,fingpt,64,10,15.62,HOLD>BUY:5 | BUY>HOLD:5
+jitter_15,jitter,15.0,Jitter +/-15m,True,deterministic,64,25,39.06,HOLD>BUY:12 | BUY>HOLD:10 | SELL>HOLD:2
+jitter_15,jitter,15.0,Jitter +/-15m,True,fingpt,64,7,10.94,BUY>HOLD:4 | HOLD>BUY:3
+jitter_30,jitter,30.0,Jitter +/-30m,False,deterministic,64,27,42.19,HOLD>BUY:14 | BUY>HOLD:8 | HOLD>SELL:2
+jitter_30,jitter,30.0,Jitter +/-30m,False,fingpt,64,11,17.19,HOLD>BUY:8 | BUY>HOLD:3
+injection_0.10,injection,0.1,Injection 10%,False,deterministic,64,11,17.19,HOLD>BUY:7 | BUY>HOLD:4
+injection_0.10,injection,0.1,Injection 10%,False,fingpt,64,1,1.56,BUY>HOLD:1
+injection_0.20,injection,0.2,Injection 20%,True,deterministic,64,12,18.75,HOLD>BUY:8 | BUY>HOLD:4
+injection_0.20,injection,0.2,Injection 20%,True,fingpt,64,2,3.12,HOLD>BUY:1 | BUY>HOLD:1
+injection_0.35,injection,0.35,Injection 35%,False,deterministic,64,12,18.75,HOLD>BUY:8 | BUY>HOLD:4
+injection_0.35,injection,0.35,Injection 35%,False,fingpt,64,2,3.12,HOLD>BUY:1 | BUY>HOLD:1

@@ -1,0 +1,5 @@
+prompt_name,design_goal,input_change,observed_behavior,BUY,HOLD,SELL,total_windows,sell_rate_%
+current_aggregate,Control prompt,Original aggregate window summary only,Most balanced; BUY/HOLD only,23,241,0,264,0.0
+raw_scores,Expose tweet-level score distribution,Adds raw sentiment scores and quantiles,Mostly HOLD; more conservative,4,260,0,264,0.0
+rule_calibrated,Align prompt with deterministic thresholds,Adds explicit BUY/SELL/HOLD policy thresholds,All HOLD,0,264,0,264,0.0
+fewshot_balanced,Reduce HOLD/BUY bias with examples,"Adds one BUY, one SELL, and one HOLD example",Mostly BUY; prompt-frame collapse,255,9,0,264,0.0

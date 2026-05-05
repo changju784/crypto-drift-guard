@@ -1,0 +1,73 @@
+family,dataset,label,strength,agent,action_taken,count,percent
+sentiment,baseline,Baseline,0.0,deterministic,BUY,14,21.88
+sentiment,baseline,Baseline,0.0,deterministic,SELL,2,3.12
+sentiment,baseline,Baseline,0.0,deterministic,HOLD,48,75.0
+sentiment,baseline,Baseline,0.0,fingpt,BUY,5,7.81
+sentiment,baseline,Baseline,0.0,fingpt,SELL,0,0.0
+sentiment,baseline,Baseline,0.0,fingpt,HOLD,59,92.19
+sentiment,sentiment_1.25,Sentiment x1.25,1.25,deterministic,BUY,21,32.81
+sentiment,sentiment_1.25,Sentiment x1.25,1.25,deterministic,SELL,2,3.12
+sentiment,sentiment_1.25,Sentiment x1.25,1.25,deterministic,HOLD,41,64.06
+sentiment,sentiment_1.25,Sentiment x1.25,1.25,fingpt,BUY,3,4.69
+sentiment,sentiment_1.25,Sentiment x1.25,1.25,fingpt,SELL,0,0.0
+sentiment,sentiment_1.25,Sentiment x1.25,1.25,fingpt,HOLD,61,95.31
+sentiment,sentiment_1.5,Sentiment x1.5,1.5,deterministic,BUY,28,43.75
+sentiment,sentiment_1.5,Sentiment x1.5,1.5,deterministic,SELL,2,3.12
+sentiment,sentiment_1.5,Sentiment x1.5,1.5,deterministic,HOLD,34,53.12
+sentiment,sentiment_1.5,Sentiment x1.5,1.5,fingpt,BUY,4,6.25
+sentiment,sentiment_1.5,Sentiment x1.5,1.5,fingpt,SELL,0,0.0
+sentiment,sentiment_1.5,Sentiment x1.5,1.5,fingpt,HOLD,60,93.75
+sentiment,sentiment_2.0,Sentiment x2.0,2.0,deterministic,BUY,35,54.69
+sentiment,sentiment_2.0,Sentiment x2.0,2.0,deterministic,SELL,2,3.12
+sentiment,sentiment_2.0,Sentiment x2.0,2.0,deterministic,HOLD,27,42.19
+sentiment,sentiment_2.0,Sentiment x2.0,2.0,fingpt,BUY,7,10.94
+sentiment,sentiment_2.0,Sentiment x2.0,2.0,fingpt,SELL,0,0.0
+sentiment,sentiment_2.0,Sentiment x2.0,2.0,fingpt,HOLD,57,89.06
+jitter,baseline,Baseline,0.0,deterministic,BUY,14,21.88
+jitter,baseline,Baseline,0.0,deterministic,SELL,2,3.12
+jitter,baseline,Baseline,0.0,deterministic,HOLD,48,75.0
+jitter,baseline,Baseline,0.0,fingpt,BUY,5,7.81
+jitter,baseline,Baseline,0.0,fingpt,SELL,0,0.0
+jitter,baseline,Baseline,0.0,fingpt,HOLD,59,92.19
+jitter,jitter_5,Jitter +/-5m,5.0,deterministic,BUY,20,29.41
+jitter,jitter_5,Jitter +/-5m,5.0,deterministic,SELL,5,7.35
+jitter,jitter_5,Jitter +/-5m,5.0,deterministic,HOLD,43,63.24
+jitter,jitter_5,Jitter +/-5m,5.0,fingpt,BUY,5,7.35
+jitter,jitter_5,Jitter +/-5m,5.0,fingpt,SELL,0,0.0
+jitter,jitter_5,Jitter +/-5m,5.0,fingpt,HOLD,63,92.65
+jitter,jitter_15,Jitter +/-15m,15.0,deterministic,BUY,19,25.0
+jitter,jitter_15,Jitter +/-15m,15.0,deterministic,SELL,4,5.26
+jitter,jitter_15,Jitter +/-15m,15.0,deterministic,HOLD,53,69.74
+jitter,jitter_15,Jitter +/-15m,15.0,fingpt,BUY,5,6.58
+jitter,jitter_15,Jitter +/-15m,15.0,fingpt,SELL,0,0.0
+jitter,jitter_15,Jitter +/-15m,15.0,fingpt,HOLD,71,93.42
+jitter,jitter_30,Jitter +/-30m,30.0,deterministic,BUY,24,27.91
+jitter,jitter_30,Jitter +/-30m,30.0,deterministic,SELL,5,5.81
+jitter,jitter_30,Jitter +/-30m,30.0,deterministic,HOLD,57,66.28
+jitter,jitter_30,Jitter +/-30m,30.0,fingpt,BUY,11,12.79
+jitter,jitter_30,Jitter +/-30m,30.0,fingpt,SELL,0,0.0
+jitter,jitter_30,Jitter +/-30m,30.0,fingpt,HOLD,75,87.21
+injection,baseline,Baseline,0.0,deterministic,BUY,14,21.88
+injection,baseline,Baseline,0.0,deterministic,SELL,2,3.12
+injection,baseline,Baseline,0.0,deterministic,HOLD,48,75.0
+injection,baseline,Baseline,0.0,fingpt,BUY,5,7.81
+injection,baseline,Baseline,0.0,fingpt,SELL,0,0.0
+injection,baseline,Baseline,0.0,fingpt,HOLD,59,92.19
+injection,injection_0.10,Injection 10%,0.1,deterministic,BUY,17,26.56
+injection,injection_0.10,Injection 10%,0.1,deterministic,SELL,2,3.12
+injection,injection_0.10,Injection 10%,0.1,deterministic,HOLD,45,70.31
+injection,injection_0.10,Injection 10%,0.1,fingpt,BUY,4,6.25
+injection,injection_0.10,Injection 10%,0.1,fingpt,SELL,0,0.0
+injection,injection_0.10,Injection 10%,0.1,fingpt,HOLD,60,93.75
+injection,injection_0.20,Injection 20%,0.2,deterministic,BUY,18,28.12
+injection,injection_0.20,Injection 20%,0.2,deterministic,SELL,2,3.12
+injection,injection_0.20,Injection 20%,0.2,deterministic,HOLD,44,68.75
+injection,injection_0.20,Injection 20%,0.2,fingpt,BUY,5,7.81
+injection,injection_0.20,Injection 20%,0.2,fingpt,SELL,0,0.0
+injection,injection_0.20,Injection 20%,0.2,fingpt,HOLD,59,92.19
+injection,injection_0.35,Injection 35%,0.35,deterministic,BUY,18,28.12
+injection,injection_0.35,Injection 35%,0.35,deterministic,SELL,2,3.12
+injection,injection_0.35,Injection 35%,0.35,deterministic,HOLD,44,68.75
+injection,injection_0.35,Injection 35%,0.35,fingpt,BUY,5,7.81
+injection,injection_0.35,Injection 35%,0.35,fingpt,SELL,0,0.0
+injection,injection_0.35,Injection 35%,0.35,fingpt,HOLD,59,92.19

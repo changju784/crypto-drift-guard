@@ -1,0 +1,4 @@
+dataset,label,nominal_injection_ratio,windows,mean_actual_ratio,min_actual_ratio,max_actual_ratio,cap_hit_windows,cap_hit_rate_%
+injection_0.10,Injection 10%,0.1,16,0.10393082737077926,0.10052910052910052,0.10975609756097561,0,0.0
+injection_0.20,Injection 20%,0.2,16,0.20293690372705134,0.2,0.2077922077922078,0,0.0
+injection_0.35,Injection 35%,0.35,16,0.34631018669247854,0.2737226277372263,0.3614457831325301,2,12.5

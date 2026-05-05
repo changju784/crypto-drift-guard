@@ -1,0 +1,7 @@
+dataset,family,strength,label,is_main,matched_windows,targeted_windows,flipped_targeted,targeted_flip_rate_%,flipped_all,all_flip_rate_%,agent
+injection_0.10,injection,0.1,Injection 10%,False,64,16,11,68.75,11,17.19,deterministic
+injection_0.10,injection,0.1,Injection 10%,False,64,16,1,6.25,1,1.56,fingpt
+injection_0.20,injection,0.2,Injection 20%,True,64,16,12,75.0,12,18.75,deterministic
+injection_0.20,injection,0.2,Injection 20%,True,64,16,2,12.5,2,3.12,fingpt
+injection_0.35,injection,0.35,Injection 35%,False,64,16,12,75.0,12,18.75,deterministic
+injection_0.35,injection,0.35,Injection 35%,False,64,16,2,12.5,2,3.12,fingpt

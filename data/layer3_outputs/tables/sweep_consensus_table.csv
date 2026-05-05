@@ -1,0 +1,11 @@
+dataset,family,strength,label,is_main,total_windows,agree_windows,consensus_%,oracle_det,oracle_fgpt,top_disagree
+baseline,baseline,0.0,Baseline,True,64,47,73.44,0,0,BUY>HOLD:12 | HOLD>BUY:3 | SELL>HOLD:2
+sentiment_1.25,sentiment,1.25,Sentiment x1.25,False,64,42,65.62,0,0,BUY>HOLD:19 | SELL>HOLD:2 | HOLD>BUY:1
+sentiment_1.5,sentiment,1.5,Sentiment x1.5,True,64,34,53.12,0,0,BUY>HOLD:26 | SELL>HOLD:2 | HOLD>BUY:2
+sentiment_2.0,sentiment,2.0,Sentiment x2.0,False,64,26,40.62,0,0,BUY>HOLD:32 | HOLD>BUY:4 | SELL>HOLD:2
+jitter_5,jitter,5.0,Jitter +/-5m,False,68,42,61.76,0,0,BUY>HOLD:18 | SELL>HOLD:5 | HOLD>BUY:3
+jitter_15,jitter,15.0,Jitter +/-15m,True,76,52,68.42,0,0,BUY>HOLD:17 | SELL>HOLD:4 | HOLD>BUY:3
+jitter_30,jitter,30.0,Jitter +/-30m,False,86,55,63.95,2,2,BUY>HOLD:20 | HOLD>BUY:6 | SELL>HOLD:4
+injection_0.10,injection,0.1,Injection 10%,False,64,43,67.19,8,8,BUY>HOLD:16 | HOLD>BUY:3 | SELL>HOLD:2
+injection_0.20,injection,0.2,Injection 20%,True,64,43,67.19,8,8,BUY>HOLD:16 | HOLD>BUY:3 | SELL>HOLD:2
+injection_0.35,injection,0.35,Injection 35%,False,64,43,67.19,8,8,BUY>HOLD:16 | HOLD>BUY:3 | SELL>HOLD:2
