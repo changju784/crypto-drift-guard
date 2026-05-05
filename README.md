@@ -1,48 +1,67 @@
 # Crypto Drift Guard
 
-A framework for detecting and measuring **logic drift** in cryptocurrency trading agents. It runs two types of experiments:
+Crypto Drift Guard is a notebook-first CS527 project for measuring how cryptocurrency trading-agent decisions drift when tweet-derived sentiment data is mutated.
 
-- **Drift mode** — subjects a deterministic rule-based agent to data mutations and measures how much its behaviour changes (Action Difference Ratio)
-- **Hybrid mode** — runs two agents in parallel (Rule Engine vs FinBERT) on the same data and measures consensus, disagreement, and comparative P&L
+The final deliverable is [`notebooks/notebook.ipynb`](notebooks/notebook.ipynb). Earlier Python package and CLI work is still kept in the repository for provenance, but the notebook and `data/` folder are the canonical materials for review.
 
-The goal is not to build a profitable trading strategy, but to observe *how* and *where* agents diverge under different conditions.
+## Final Entry Point
 
----
+Open and run:
 
-## Project Structure
-
+```text
+notebooks/notebook.ipynb
 ```
+
+The notebook contains the complete final workflow:
+
+| Layer | Purpose | Main outputs |
+|---|---|---|
+| Layer 1 | Clean Crypto10K tweets, score BTC/ETH tweets with FinBERT, and generate mutation sweeps | `data/layer1_outputs/` |
+| Layer 2 | Run deterministic and FinGPT-style trading agents on baseline and mutated window data | generated trajectories under `data/layer2_outputs/` when rerun |
+| Layer 3 | Compute drift, consensus, prompt-ablation snapshots, sweep sensitivity tables, and plots | `data/layer3_outputs/` |
+
+The goal is not to build a profitable trading strategy. The project measures where deterministic and LLM-based trading decisions diverge under sentiment amplification, temporal jitter, and adversarial tweet injection.
+
+## Repository Structure
+
+```text
 crypto-drift-guard/
+├── notebooks/
+│   └── notebook.ipynb                    # final notebook and primary project entry point
 ├── data/
-│   └── crypto_sentiment_prediction_dataset.csv   # 2063 rows, 30-day crypto market data
-├── outputs/                                       # Generated on each run (JSON, TXT, PNG)
-├── src/
-│   ├── main.py                                    # Entry point — drift / hybrid / all modes
-│   ├── simulator.py                               # P&L engine ($1000 notional per trade)
-│   ├── agents/
-│   │   ├── rule_based_agent.py                    # Deterministic rule engine + risk oracle
-│   │   └── fingpt_agent.py                        # FinBERT / heuristic agent
-│   ├── analysis/
-│   │   ├── reports.py                             # DriftReport, ConsensusReport, P&L table
-│   │   └── plots.py                               # 4 comparison plots (PNG)
-│   └── data/
-│       └── data_ingestion.py                      # CSV loader + mutation operators
-└── requirements.txt
+│   ├── crypto_10k_tweets_(2021_2022Nov).csv
+│   ├── CS527_Project_Proposal.pdf
+│   ├── layer1_outputs/                   # cleaned, FinBERT-scored, and mutated tweet datasets
+│   ├── layer2_outputs/                   # optional/generated trajectories when rerunning Layer 2
+│   └── layer3_outputs/                   # final plots and summary tables used by the notebook
+├── src/                                  # legacy CLI implementation kept for provenance
+├── outputs/                              # legacy CLI run outputs kept for provenance
+├── requirements.txt
+└── README.md
 ```
 
-### Key components
+### Canonical Data and Results
 
-| Component | Role |
+Use `data/` as the source of truth for the final notebook workflow:
+
+| Path | Role |
 |---|---|
-| `TradingAgent` | Stateless rule engine: sentiment + RSI thresholds, volatility oracle |
-| `FinancialLLMAgent` | FinBERT (ML) or heuristic (weighted composite score) |
-| `simulator.py` | Converts action trajectories to per-step and cumulative P&L |
-| `compute_drift()` | Compares two Rule Engine trajectories — baseline vs mutant |
-| `compute_consensus()` | Compares Rule Engine vs FinBERT trajectories |
+| `data/crypto_10k_tweets_(2021_2022Nov).csv` | Raw Crypto10K tweet dataset currently stored in this repository |
+| `data/layer1_outputs/` | Final Layer 1 datasets: cleaned BTC/ETH tweets, FinBERT scores, mutation sweeps, and target-window reports |
+| `data/layer2_outputs/` | Generated Layer 2 trajectory location; this folder may be empty in the committed repo and is recreated when the notebook is rerun |
+| `data/layer3_outputs/tables/` | Final CSV summaries for ADR, consensus, injection sensitivity, and prompt ablation |
+| `data/layer3_outputs/plots/` | Final visualization files used by the notebook/report |
 
----
+Important final result files include:
 
-## How to Run Locally
+- `data/layer3_outputs/tables/adr_table.csv`
+- `data/layer3_outputs/tables/consensus_table.csv`
+- `data/layer3_outputs/tables/sweep_adr_table.csv`
+- `data/layer3_outputs/tables/sweep_consensus_table.csv`
+- `data/layer3_outputs/tables/injection_flip_table.csv`
+- `data/layer3_outputs/tables/prompt_ablation_summary.csv`
+
+## How to Run
 
 ### 1. Install dependencies
 
@@ -50,184 +69,65 @@ crypto-drift-guard/
 pip install -r requirements.txt
 ```
 
-> First run with `--backend finbert` will download `ProsusAI/finbert` (~440 MB) and cache it locally.
+The notebook also installs or imports additional model-runtime packages in Colab cells when needed, such as `transformers`, `peft`, `bitsandbytes`, and `accelerate`.
 
-### 2. Run all experiments
+### 2. Open the notebook
+
+Use Jupyter or Google Colab:
 
 ```bash
-# Full run — drift mode + hybrid mode (heuristic backend, fast)
-python src/main.py
-
-# Full run with FinBERT (ML, CPU-friendly)
-python src/main.py --mode all --backend finbert
-
-# Drift analysis only
-python src/main.py --mode drift
-
-# Hybrid comparison on a 100-row sample (quick test)
-python src/main.py --mode hybrid --sample 100 --backend finbert
+jupyter notebook notebooks/notebook.ipynb
 ```
 
-### CLI options
+Then run the notebook from top to bottom. The checked-in outputs under `data/layer1_outputs/` and `data/layer3_outputs/` let readers inspect the final generated artifacts without rerunning every model-heavy cell.
 
-| Flag | Default | Description |
-|---|---|---|
-| `--mode` | `all` | `drift`, `hybrid`, or `all` |
-| `--backend` | `heuristic` | `heuristic` (no ML) or `finbert` (local ~440 MB) |
-| `--sample N` | full dataset | Limit hybrid mode to first N rows |
+### 3. Check the raw-data path before rerunning
 
-### 3. Outputs
+The current notebook was developed with a Colab-style path:
 
-All files are written to `outputs/`:
+```text
+data/raw/crypto_10k_tweets_(2021_2022Nov).csv
+```
 
-| Pattern | Description |
+In this repository, the raw CSV is currently stored at:
+
+```text
+data/crypto_10k_tweets_(2021_2022Nov).csv
+```
+
+Before rerunning Layer 1 from scratch, either update `RAW_PATH` in the notebook to the repository path above or place a copy/symlink of the CSV under `data/raw/`.
+
+## Final Outputs
+
+The notebook writes final figures and tables under `data/layer3_outputs/`.
+
+| Output | File |
 |---|---|
-| `traj_*.json` | Per-step trajectory with actions, P&L, reasoning |
-| `combined_log_*.json` | Side-by-side Rule + FinBERT log with agreement flag |
-| `drift_report_*.txt` | ADR and oracle violation metrics |
-| `consensus_report_*.txt` | Logic gap, policy gap, disagreement breakdown |
-| `*_pnl_*.txt` | P&L comparison table |
-| `plot_*.png` | Action distribution, P&L curves, agreement matrix, decision timeline |
+| ADR comparison | `data/layer3_outputs/plots/l3_adr_comparison.png` |
+| Rule vs FinGPT agreement matrix | `data/layer3_outputs/plots/l3_agreement_matrix_grid.png` |
+| Action distribution by main mutation | `data/layer3_outputs/plots/l3_action_distribution_vertical.png` |
+| Adversarial flip analysis | `data/layer3_outputs/plots/l3_adversarial_flip.png` |
+| Sweep ADR table | `data/layer3_outputs/tables/sweep_adr_table.csv` |
+| Sweep consensus table | `data/layer3_outputs/tables/sweep_consensus_table.csv` |
 
----
+![ADR comparison](data/layer3_outputs/plots/l3_adr_comparison.png)
 
-## Analysis Report
+![Rule vs FinGPT agreement matrix](data/layer3_outputs/plots/l3_agreement_matrix_grid.png)
 
-> Results from: `python src/main.py --mode all --backend finbert`
-> Dataset: 2063 rows, 2025-06-04 → 2025-07-04
+## Reproducibility Notes
 
-### Agent Designs
+- FinBERT scoring may download `ProsusAI/finbert` and can take time on CPU.
+- FinGPT-style inference cells are designed for Colab/GPU execution and may require model downloads plus GPU-compatible package versions.
+- Some Layer 3 plots and tables depend on recorded prompt-ablation outputs; the notebook marks those as static snapshots instead of rerunning the full ablation each time.
+- Rerunning all cells may overwrite files under `data/layer1_outputs/`, `data/layer2_outputs/`, and `data/layer3_outputs/`.
 
-**Rule Engine** (`rule_based_agent.py`)
+## Legacy Materials
 
-| Signal | Condition | Action |
-|---|---|---|
-| Sentiment > 0.5 AND RSI < 70 | — | BUY |
-| Sentiment < −0.3 OR RSI > 80 | — | SELL |
-| Otherwise | — | HOLD |
-| Volatility > 90 (oracle) | override any | HOLD |
+The folders below are intentionally retained but are not the final project entry point:
 
-**Heuristic agent** (`fingpt_agent.py`, `backend="heuristic"`)
-
-Weighted composite: `0.50×sentiment + 0.25×rsi_signal + 0.15×momentum + 0.10×fear_greed`
-- Composite > 0.30 → BUY, < −0.20 → SELL, else HOLD (softer thresholds, 4 signals vs 2)
-
-**FinBERT agent** (`fingpt_agent.py`, `backend="finbert"`)
-
-Constructs a natural-language sentence from the row's numerical fields and classifies it with `ProsusAI/finbert` (positive/negative/neutral → BUY/SELL/HOLD).
-
----
-
-### Experiment 1 — Drift: Intensity Mutation (sentiment ×2.0)
-
-```
-Total steps       : 2063
-Mismatched steps  : 398
-ADR               : 19.29%
-Oracle violations : 0  (0.00%)
-```
-
-| Agent | P&L | Trades | Win rate |
-|---|---|---|---|
-| Baseline (Rule Engine) | −$369.90 | 296 | 46.6% |
-| Mutant (sentiment ×2.0) | −$1,801.30 | 694 | 47.8% |
-| **Delta** | **−$1,431.40** | +398 | +1.2pp |
-
-**Key findings:**
-- Doubling sentiment pushes ~1 in 5 rows across the BUY threshold (`> 0.5`), causing the agent to over-trade (296 → 694 trades)
-- More trades with a near-50% win rate compounds losses — the agent doesn't get smarter from stronger signals
-- **Zero oracle violations** confirm the risk oracle is robust: every high-volatility row is correctly suppressed regardless of mutation
-
----
-
-### Experiment 2 — Drift: Temporal Jitter (news_impact shifted 3 steps)
-
-```
-Total steps       : 2063
-Mismatched steps  : 0
-ADR               : 0.00%
-Oracle violations : 0  (0.00%)
-```
-
-| Agent | P&L | Trades |
-|---|---|---|
-| Baseline | −$369.90 | 296 |
-| Mutant (lagged news) | −$369.90 | 296 |
-
-**Key finding:** The Rule Engine is completely invariant to this mutation because its policy only reads `social_sentiment_score` and `rsi_technical_indicator` — `news_impact_score` is never used. This reveals a silent dead feature in the dataset.
-
----
-
-### Experiment 3 — Hybrid: Rule Engine vs FinBERT (full dataset, sentiment ×2.0)
-
-```
-=== Consensus & Gap Report ===
-Total steps              : 2063
-
-Logic Gap (post-oracle)  : 761   (36.89%)
-Policy Gap (pre-oracle)  : 1197  (58.02%)
-Oracle Override Rate     : 675   (32.72%)
-```
-
-**Action distributions:**
-
-| Action | Rule Engine | FinBERT |
-|---|---|---|
-| BUY | 257 (12.5%) | 257 (12.5%) |
-| SELL | 437 (21.2%) | 976 (47.3%) |
-| HOLD | 1369 (66.3%) | 830 (40.2%) |
-
-**P&L:**
-
-| Agent | P&L | Trades | Win rate |
-|---|---|---|---|
-| Rule Engine | −$1,801.30 | 694 | 47.8% |
-| FinBERT | +$24,846.20 | 1,233 | **74.6%** |
-| **Delta** | **+$26,647.50** | — | — |
-
-**Disagreement breakdown (Rule → FinBERT):**
-
-| Transition | Count |
+| Path | Status |
 |---|---|
-| HOLD → SELL | 427 |
-| HOLD → BUY | 149 |
-| BUY → SELL | 130 |
-| BUY → HOLD | 37 |
-| SELL → BUY | 18 |
+| `src/` | Earlier Python CLI implementation with agents, simulator, reports, and plotting helpers |
+| `outputs/` | Results generated by the earlier CLI workflow |
 
-**Key findings:**
-- FinBERT is heavily SELL-biased (976 SELLs vs 437) — the dominant divergence is the 427 `HOLD→SELL` flips where FinBERT shorts positions the Rule Engine sits out
-- The 58% policy gap pre-oracle is high; the oracle reduces this to 37% by collapsing many disagreements into mutual HOLDs (32.7% of all steps are oracle-overridden)
-- BUY counts are identical (257) — both agents agree on when to go long but diverge sharply on when to go short
-
----
-
-### Plots
-
-**Action Distribution**
-
-![Action Distribution](outputs/plot_action_dist_k2_full_finbert.png)
-
-**Cumulative P&L Curves**
-
-![P&L Curves](outputs/plot_pnl_curves_k2_full_finbert.png)
-
-**Decision Agreement Matrix**
-
-![Agreement Matrix](outputs/plot_agreement_matrix_k2_full_finbert.png)
-
-**Decision Timeline**
-
-![Decision Timeline](outputs/plot_decision_timeline_k2_full_finbert.png)
-
----
-
-### Caveats
-
-1. **FinBERT reads constructed text, not real news.** Its input is a sentence built from numerical fields (e.g. *"Algorand moved down 5.3% with positive social sentiment"*). The high win rate reflects pattern-matching on words like "moved down" rather than genuine financial understanding.
-
-2. **74.6% win rate is abnormally high.** Real strategies rarely sustain above 55–60%. The dataset covers a single 30-day window and FinBERT's SELL bias happened to align with the market's direction during that period.
-
-3. **No transaction costs.** The simulator assumes zero friction. FinBERT's 1,233 trades vs the Rule Engine's 694 would incur significantly more cost in practice.
-
-4. **No out-of-sample validation.** All evaluation is in-sample on the same 2063 rows used to develop the system.
+These files are useful for tracing earlier development decisions and comparing against the final notebook implementation. Reviewers should treat `notebooks/notebook.ipynb` and `data/` as the final submission materials.
