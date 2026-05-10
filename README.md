@@ -4,6 +4,8 @@ Crypto Drift Guard is a notebook-first CS527 project for measuring how cryptocur
 
 The final deliverable is [`notebooks/notebook.ipynb`](notebooks/notebook.ipynb). Earlier Python package and CLI work is still kept in the repository for provenance, but the notebook and `data/` folder are the canonical materials for review.
 
+<img width="1500" height="1000" alt="crypto-drift-guard" src="https://github.com/user-attachments/assets/22c58c95-e706-4ac2-aed4-0aa913918b19" />
+
 ## Final Entry Point
 
 Open and run:
